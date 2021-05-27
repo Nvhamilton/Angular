@@ -1,7 +1,8 @@
-import { variable } from "@angular/compiler/src/output/output_ast";
-import { Component } from "@angular/core";
+import { Component,OnDestroy,OnInit } from "@angular/core";
+import { Observable, range, Subscription } from "rxjs";
 import {IProduct} from './IProduct'
-
+import { ProductService } from "./product.service";
+import{map,filter} from 'rxjs/operators'
 
 @Component({
     selector:'pm-products',//use selector to insert object into our application 
@@ -11,75 +12,62 @@ import {IProduct} from './IProduct'
 
     ,styleUrls:[]
 })
+export class ProductListComponent implements OnInit{
+//this is our class object which we call inside the module
+constructor(private _productService:ProductService){}
 
+filteredProducts:IProduct[]=[];
+products :IProduct[] = [];
+errorMessage:string=''
+sub!: Subscription;
+private _listFilter:string=''
+pageTitle ="Product List";
+imageWidth =50;
+imageMargin =2;
+showImage:boolean=false;//showimage member of type boolean = false;
 
-export class ProductListComponent{//this is our class object which we call inside the module
-listFilter:string='cart'
-
-  pageTitle ="Product List";
-
-  imageWidth =50;
-  imageMargin =2;
-  showImage:boolean=false;//showimage member of type boolean = false;
-
-
-    products :IProduct[] = [ {
-        "productId": 1,
-        "productName": "Leaf Rake",
-        "productCode": "GDN-0011",
-        "releaseDate": "March 19, 2021",
-        "description": "Leaf rake with 48-inch wooden handle.",
-        "price": 19.95,
-        "starRating": 3.2,
-        "imageUrl": "assets/images/leaf_rake.png"
-      },
-      {
-        "productId": 2,
-        "productName": "Garden Cart",
-        "productCode": "GDN-0023",
-        "releaseDate": "March 18, 2021",
-        "description": "15 gallon capacity rolling garden cart",
-        "price": 32.99,
-        "starRating": 4.2,
-        "imageUrl": "assets/images/garden_cart.png"
-      },
-      {
-        "productId": 5,
-        "productName": "Hammer",
-        "productCode": "TBX-0048",
-        "releaseDate": "May 21, 2021",
-        "description": "Curved claw steel hammer",
-        "price":   8.90,
-        "starRating": 4.8,
-        "imageUrl": "assets/images/hammer.png"
-      },
-      {
-        "productId": 8,
-        "productName": "Saw",
-        "productCode": "TBX-0022",
-        "releaseDate": "May 15, 2021",
-        "description": "15-inch steel blade hand saw",
-        "price": 11.55,
-        "starRating": 3.7,
-        "imageUrl": "assets/images/saw.png"
-      },
-      {
-        "productId": 10,
-        "productName": "Video Game Controller",
-        "productCode": "GMG-0042",
-        "releaseDate": "October 15, 2020",
-        "description": "Standard two-button video game controller",
-        "price": 35.95,
-        "starRating": 4.6,
-        "imageUrl": "assets/images/xbox-controller.png"
-        }
-    ];
-
-
-
-
-        toggleImage():void{
-            this.showImage=!this.showImage;
-        }
-    
+get listfilter():string{
+  return this._listFilter;
 }
+
+set listFilter(value:string){
+    this._listFilter = value;
+    console.log('in setter: ' , value)
+    this.filteredProducts =  this.performFilter(value);
+}
+
+performFilter(value:string):IProduct[]{
+  //change every value to lowercase for comparison
+value = value.toLocaleLowerCase();
+
+//returns this current product array but is filtered by the arrow function. true if product.productname includes whatever value we pass it
+  return this.products.filter((product:IProduct )=> 
+  product.productName.toLowerCase().includes(value))
+}
+        toggleImage():void{
+          this.showImage=!this.showImage;//sets showImage to it's opposite value
+        }
+
+        ngOnInit(): void {/* async function. Runs getproducts method on our productservice class
+                             .subscribe is our get method. Next,error,complete pattern
+                              products get arrowed into whatever we get back from our emitter
+                              Since our site only displays filtered products, we must set that equal as well.*/
+            this._productService.getProducts().subscribe({
+              next: products => {
+                this.products= products;
+                this.filteredProducts=this.products;
+              },
+              error: error=> this.errorMessage=error,
+
+            });
+          }
+
+
+
+
+
+        onRatingClicked(event:string):void{
+            this.pageTitle =  event
+        }
+}
+

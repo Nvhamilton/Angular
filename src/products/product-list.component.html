@@ -1,3 +1,4 @@
+
 <div class="card">
     <div class="card-header" style="background-color: white; color: black; font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; font: 900;">
         {{pageTitle}}
@@ -9,7 +10,7 @@
       <div class='col-md-2'>Filter by:</div>
       <div class='col-md-4'>
         <input type='text'
-               [(ngModel)]='listFilter' />
+               [(ngModel)]='listFilter' value="{{listFilter}}" />
       </div>
     </div>
     <div class='row'
@@ -38,16 +39,23 @@
         </thead>
 
         <tbody>
-<tr *ngFor='let product of products' style="color: cyan;"><!--repeater method that iterates through the products list defined in the component-->
+<tr *ngFor='let product of filteredProducts' style="color: cyan;"><!--repeater method that iterates through the products list defined in the component-->
     <td><img *ngIf='showImage' [src]="product.imageUrl" [title]='product.productName' 
         [style.width.px] = 'imageWidth'  
         [style.margin.px] = 'imageMargin'>   </td>
-<td>{{product.productName | uppercase}}</td>
-<td>{{product.productCode |lowercase}}</td>
+<td>    
+       <a [routerLink]="['/products', product.productId]">
+
+
+                {{ product.productName }}
+              </a>
+            
+            </td>
+<td>{{product.productCode |lowercase|convertToSpaces:'-'}}</td>
 <td>{{product.releaseDate |date}}</td>
 <td>{{product.price |currency}}</td>
-<td>{{product.starRating|number}}</td>
-
+<td> <pm-star [rating]='product.starRating'
+    (ratingClicked) ='onRatingClicked($event)'> </pm-star> </td>
 
 </tr>
 
